@@ -1,0 +1,23 @@
+# Build directories
+build/
+bin/
+lib/
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+*.ninja
+.ninja_*
+
+# IDE and Editor files
+.vscode/
+.idea/
+.clangd/
+compile_commands.json
+
+# Temporary files
+*.so
+*.dylib
+*.dll
+*.o
+*.a

@@ -1,0 +1,51 @@
+find_package(Python3 REQUIRED COMPONENTS Interpreter)
+
+# Locate check_clang_tidy.py or download if not found
+find_file(
+    CHECK_CLANG_TIDY_PY
+    NAMES check_clang_tidy.py
+    HINTS
+        $ENV{HOME}/src/llvm-project/clang-tools-extra/test/clang-tidy
+        ${LLVM_SOURCE_DIR}/tools/clang/tools/extra/test/clang-tidy
+        ${LLVM_SOURCE_DIR}/../clang-tools-extra/test/clang-tidy
+        /usr/share/clang
+        /usr/local/share/clang
+)
+
+if(NOT CHECK_CLANG_TIDY_PY)
+    message(
+        STATUS
+        "check_clang_tidy.py not found locally; downloading from LLVM repository..."
+    )
+    set(CHECK_CLANG_TIDY_PY "${CMAKE_CURRENT_BINARY_DIR}/check_clang_tidy.py")
+    file(
+        DOWNLOAD
+            "https://raw.githubusercontent.com/llvm/llvm-project/release/20.x/clang-tools-extra/test/clang-tidy/check_clang_tidy.py"
+        "${CHECK_CLANG_TIDY_PY}"
+        STATUS DOWNLOAD_STATUS
+    )
+    list(GET DOWNLOAD_STATUS 0 STATUS_CODE)
+    if(NOT STATUS_CODE EQUAL 0)
+        message(
+            FATAL_ERROR
+            "Failed to download check_clang_tidy.py: ${DOWNLOAD_STATUS}"
+        )
+    endif()
+endif()
+
+message(STATUS "Using check_clang_tidy.py: ${CHECK_CLANG_TIDY_PY}")
+
+# Add a clang-tidy plugin test using check_clang_tidy.py
+function(add_clang_tidy_test TEST_NAME TEST_SOURCE CHECKS)
+    add_test(
+        NAME ${TEST_NAME}
+        COMMAND
+            ${Python3_EXECUTABLE} ${CHECK_CLANG_TIDY_PY}
+            ${CMAKE_CURRENT_SOURCE_DIR}/${TEST_SOURCE} ${CHECKS}
+            ${CMAKE_CURRENT_BINARY_DIR}/${TEST_SOURCE}.tmp -std=c++17
+            -load=$<TARGET_FILE:FaultLine> -- -std=c++17
+    )
+endfunction()
+
+add_clang_tidy_test(test_no_printf test_no_printf.cpp "awesome-no-printf")
+add_clang_tidy_test(test_snake_case test_snake_case.cpp "awesome-snake-case-function")
