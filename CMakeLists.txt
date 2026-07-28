@@ -56,14 +56,16 @@ target_sources(
     FaultLine
     PRIVATE
         src/FaultLineModule.cpp
-        src/NoPrintfCheck.cpp
-        src/SnakeCaseFunctionCheck.cpp
+        src/CallerMissingExceptionAttributeCheck.cpp
+        src/MissingExceptionAttributeCheck.cpp
+        src/UselessExceptionAttributeCheck.cpp
     PUBLIC
         FILE_SET HEADERS
             BASE_DIRS include
             FILES
-                include/clang/tidy/fault_line/NoPrintfCheck.hpp
-                include/clang/tidy/fault_line/SnakeCaseFunctionCheck.hpp
+                include/clang/tidy/fault_line/CallerMissingExceptionAttributeCheck.hpp
+                include/clang/tidy/fault_line/MissingExceptionAttributeCheck.hpp
+                include/clang/tidy/fault_line/UselessExceptionAttributeCheck.hpp
 )
 
 # Disable "lib" prefix on Windows/macOS if desired, keeping standard library output

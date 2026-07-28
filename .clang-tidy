@@ -1,6 +1,8 @@
 ---
+BasedOnStyle: LLVM
 # Configuration for clang-tidy plugin checks
-Checks: -*,awesome-no-printf,awesome-snake-case-function
+Checks: -*,awesome-snake-case-function,fault-line-*
 WarningsAsErrors: ''
 HeaderFilterRegex: ''
 FormatStyle: none
+ColumnLimit: 240

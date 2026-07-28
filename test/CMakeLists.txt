@@ -47,5 +47,4 @@ function(add_clang_tidy_test TEST_NAME TEST_SOURCE CHECKS)
     )
 endfunction()
 
-add_clang_tidy_test(test_no_printf test_no_printf.cpp "awesome-no-printf")
-add_clang_tidy_test(test_snake_case test_snake_case.cpp "awesome-snake-case-function")
+add_clang_tidy_test(test_exception_attribute test_exception_attribute.cpp "fault-line-caller-missing-exception-attribute,fault-line-missing-exception-attribute,fault-line-useless-exception-attribute")
