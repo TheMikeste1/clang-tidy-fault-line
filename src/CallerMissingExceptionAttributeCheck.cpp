@@ -1,26 +1,26 @@
 #include "clang/tidy/fault_line/CallerMissingExceptionAttributeCheck.hpp"
-#include "clang/ASTMatchers/ASTMatchFinder.h"
-#include "clang/ASTMatchers/ASTMatchers.h"
-#include <algorithm>
 #include <clang/AST/Attr.h>
 #include <clang/AST/Decl.h>
 #include <clang/AST/Expr.h>
+#include "clang/ASTMatchers/ASTMatchFinder.h"
+#include "clang/ASTMatchers/ASTMatchers.h"
 #include <clang/Basic/AttrKinds.h>
 #include <clang/Basic/LLVM.h>
 #include <llvm/ADT/StringRef.h>
+#include <algorithm>
 
 using namespace clang::ast_matchers;
 
 namespace clang::tidy::fault_line {
 namespace {
-bool hasThrowsExceptionAnnotation(const FunctionDecl *functionDecl) {
-  if (functionDecl == nullptr || !functionDecl->hasAttrs()) {
+bool hasThrowsExceptionAnnotation(const FunctionDecl *FunctionDeclaration) {
+  if (FunctionDeclaration == nullptr || !FunctionDeclaration->hasAttrs()) {
     return false;
   }
 
-  return std::any_of(functionDecl->attrs().begin(), functionDecl->attrs().end(), [](const Attr *attr) {
-    if (const auto *annotate = dyn_cast<AnnotateAttr>(attr)) {
-      return annotate->getAnnotation().contains("throws_exception");
+  return std::any_of(FunctionDeclaration->attrs().begin(), FunctionDeclaration->attrs().end(), [](const Attr *attr) {
+    if (const auto *Annotate = dyn_cast<AnnotateAttr>(attr)) {
+      return Annotate->getAnnotation().contains("throws_exception");
     }
     return false;
   });
@@ -28,10 +28,7 @@ bool hasThrowsExceptionAnnotation(const FunctionDecl *functionDecl) {
 } // namespace
 
 void CallerMissingExceptionAttributeCheck::registerMatchers(MatchFinder *Finder) {
-  Finder->addMatcher(callExpr(callee(functionDecl(hasAttr(attr::Annotate)).bind("callee_decl")),
-unless(hasAncestor(cxxTryStmt())),
-forFunction(functionDecl().bind("caller_decl"))).bind("unhandled_call"),
-this);
+  Finder->addMatcher(callExpr(callee(functionDecl(hasAttr(attr::Annotate)).bind("callee_decl")), unless(hasAncestor(compoundStmt(hasParent(cxxTryStmt())))), forCallable(functionDecl().bind("caller_decl"))).bind("unhandled_call"), this);
 }
 
 void CallerMissingExceptionAttributeCheck::check(const MatchFinder::MatchResult &Result) {
@@ -54,5 +51,4 @@ void CallerMissingExceptionAttributeCheck::check(const MatchFinder::MatchResult 
                                    "exceptions or marking parent function")
       << CalleeDecl;
 }
-
 } // namespace clang::tidy::fault_line

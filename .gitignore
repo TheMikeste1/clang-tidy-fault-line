@@ -21,3 +21,5 @@ compile_commands.json
 *.dll
 *.o
 *.a
+
+Testing/

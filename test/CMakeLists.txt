@@ -47,4 +47,6 @@ function(add_clang_tidy_test TEST_NAME TEST_SOURCE CHECKS)
     )
 endfunction()
 
-add_clang_tidy_test(test_exception_attribute test_exception_attribute.cpp "fault-line-caller-missing-exception-attribute,fault-line-missing-exception-attribute,fault-line-useless-exception-attribute")
+add_clang_tidy_test(test_caller_exception_attribute test_caller_exception_attribute.cpp "fault-line-caller-missing-exception-attribute")
+add_clang_tidy_test(test_exception_attribute test_exception_attribute.cpp "fault-line-missing-exception-attribute")
+add_clang_tidy_test(test_no_annotation_required test_no_annotation_required.cpp "fault-line-*")
