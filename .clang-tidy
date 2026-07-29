@@ -1,8 +1,80 @@
 ---
-BasedOnStyle: LLVM
-# Configuration for clang-tidy plugin checks
-Checks: -*,awesome-snake-case-function,fault-line-*
-WarningsAsErrors: ''
 HeaderFilterRegex: ''
-FormatStyle: none
-ColumnLimit: 240
+Checks: >
+  -*,
+  clang-diagnostic-*,
+  llvm-*,
+  misc-*,
+  -misc-const-correctness,
+  -misc-include-cleaner,
+  -misc-no-recursion,
+  -misc-non-private-member-variables-in-classes,
+  -misc-unused-parameters,
+  -misc-use-anonymous-namespace,
+  readability-identifier-naming
+  bugprone-*,
+  -bugprone-assignment-in-if-condition,
+  -bugprone-branch-clone,
+  -bugprone-easily-swappable-parameters,
+  -bugprone-narrowing-conversions,
+  -bugprone-unchecked-optional-access,
+  -bugprone-unused-return-value,
+  cppcoreguidelines-init-variables,
+  cppcoreguidelines-missing-std-forward,
+  cppcoreguidelines-rvalue-reference-param-not-moved,
+  cppcoreguidelines-virtual-class-destructor,
+  google-readability-casting,
+  misc-const-correctness,
+  misc-include-cleaner,
+  modernize-*,
+  -modernize-avoid-c-arrays,
+  -modernize-pass-by-value,
+  -modernize-use-nodiscard,
+  -modernize-use-trailing-return-type,
+  performance-*,
+  -performance-enum-size,
+  -performance-no-int-to-ptr,
+  readability-*,
+  -readability-avoid-nested-conditional-operator,
+  -readability-braces-around-statements,
+  -readability-convert-member-functions-to-static,
+  -readability-else-after-return,
+  -readability-function-cognitive-complexity,
+  -readability-identifier-length,
+  -readability-implicit-bool-conversion,
+  -readability-isolate-declaration,
+  -readability-magic-numbers,
+  -readability-named-parameter,
+  -readability-qualified-auto,
+  -readability-simplify-boolean-expr,
+  -readability-static-definition-in-anonymous-namespace,
+  -readability-suspicious-call-argument
+CheckOptions:
+  - key: performance-move-const-arg.CheckTriviallyCopyableMove
+    value: false
+  - key: misc-include-cleaner.MissingIncludes
+    value: false
+  - key: readability-identifier-naming.ClassCase
+    value: CamelCase
+  - key: readability-identifier-naming.EnumCase
+    value: CamelCase
+  - key: readability-identifier-naming.FunctionCase
+    value: camelBack
+  # Exclude from scanning as this is an exported symbol used for fuzzing
+  # throughout the code base.
+  - key: readability-identifier-naming.FunctionIgnoredRegexp
+    value: LLVMFuzzerTestOneInput
+  - key: readability-identifier-naming.MemberCase
+    value: CamelCase
+  - key: readability-identifier-naming.ParameterCase
+    value: CamelCase
+  - key: readability-identifier-naming.UnionCase
+    value: CamelCase
+  - key: readability-identifier-naming.VariableCase
+    value: CamelCase
+  - key: readability-identifier-naming.IgnoreMainLikeFunctions
+    value: 1
+  - key: readability-redundant-member-init.IgnoreBaseInCopyConstructors
+    value: 1
+  - key: modernize-use-default-member-init.UseAssignment
+    value: 1
