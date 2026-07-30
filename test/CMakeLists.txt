@@ -36,17 +36,20 @@ endif()
 message(STATUS "Using check_clang_tidy.py: ${CHECK_CLANG_TIDY_PY}")
 
 # Add a clang-tidy plugin test using check_clang_tidy.py
-function(add_clang_tidy_test TEST_NAME TEST_SOURCE CHECKS)
+function(add_clang_tidy_test TEST_NAME CHECKS)
     add_test(
         NAME ${TEST_NAME}
         COMMAND
             ${Python3_EXECUTABLE} ${CHECK_CLANG_TIDY_PY}
-            ${CMAKE_CURRENT_SOURCE_DIR}/${TEST_SOURCE} ${CHECKS}
-            ${CMAKE_CURRENT_BINARY_DIR}/${TEST_SOURCE}.tmp -std=c++17
+            ${CMAKE_CURRENT_SOURCE_DIR}/${TEST_NAME}.cpp ${CHECKS}
+            ${CMAKE_CURRENT_BINARY_DIR}/${TEST_NAME}.cpp.tmp -std=c++17
             -load=$<TARGET_FILE:FaultLine> -- -std=c++17
     )
 endfunction()
 
-add_clang_tidy_test(test_caller_exception_attribute test_caller_exception_attribute.cpp "fault-line-caller-missing-exception-attribute")
-add_clang_tidy_test(test_exception_attribute test_exception_attribute.cpp "fault-line-missing-exception-attribute")
-add_clang_tidy_test(test_no_annotation_required test_no_annotation_required.cpp "fault-line-*")
+add_clang_tidy_test(test_caller_exception_attribute  "fault-line-caller-missing-exception-attribute")
+add_clang_tidy_test(test_missing_exception_attribute "fault-line-missing-exception-attribute")
+add_clang_tidy_test(test_must_not_throw_exception    "fault-line-caller-noexcept-exception")
+add_clang_tidy_test(test_no_attribute_required       "fault-line-*")
+add_clang_tidy_test(test_unhandleable_exception      "fault-line-unhandleable-exception")
+add_clang_tidy_test(test_useless_exception_attribute "fault-line-useless-exception-attribute")

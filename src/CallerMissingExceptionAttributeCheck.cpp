@@ -1,13 +1,13 @@
 #include "clang/tidy/fault_line/CallerMissingExceptionAttributeCheck.hpp"
+#include "clang/ASTMatchers/ASTMatchFinder.h"
+#include "clang/ASTMatchers/ASTMatchers.h"
+#include <algorithm>
 #include <clang/AST/Attr.h>
 #include <clang/AST/Decl.h>
 #include <clang/AST/Expr.h>
-#include "clang/ASTMatchers/ASTMatchFinder.h"
-#include "clang/ASTMatchers/ASTMatchers.h"
 #include <clang/Basic/AttrKinds.h>
 #include <clang/Basic/LLVM.h>
 #include <llvm/ADT/StringRef.h>
-#include <algorithm>
 
 using namespace clang::ast_matchers;
 
@@ -18,8 +18,8 @@ bool hasThrowsExceptionAnnotation(const FunctionDecl *FunctionDeclaration) {
     return false;
   }
 
-  return std::any_of(FunctionDeclaration->attrs().begin(), FunctionDeclaration->attrs().end(), [](const Attr *attr) {
-    if (const auto *Annotate = dyn_cast<AnnotateAttr>(attr)) {
+  return std::any_of(FunctionDeclaration->attrs().begin(), FunctionDeclaration->attrs().end(), [](const Attr *Attr) {
+    if (const auto *Annotate = dyn_cast<AnnotateAttr>(Attr)) {
       return Annotate->getAnnotation().contains("throws_exception");
     }
     return false;

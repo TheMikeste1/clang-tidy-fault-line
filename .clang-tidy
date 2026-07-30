@@ -4,6 +4,7 @@ Checks: >
   -*,
   clang-diagnostic-*,
   llvm-*,
+  -llvm-include-order,
   -llvm-prefer-static-over-anonymous-namespace,
   misc-*,
   -misc-const-correctness,
