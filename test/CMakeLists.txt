@@ -1,3 +1,9 @@
+find_program(
+    CLANG_TIDY_BIN
+    NAMES clang-tidy
+    HINTS ${LLVM_TOOLS_BINARY_DIR}
+    REQUIRED
+)
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
 
 # Locate check_clang_tidy.py or download if not found
@@ -5,7 +11,6 @@ find_file(
     CHECK_CLANG_TIDY_PY
     NAMES check_clang_tidy.py
     HINTS
-        $ENV{HOME}/src/llvm-project/clang-tools-extra/test/clang-tidy
         ${LLVM_SOURCE_DIR}/tools/clang/tools/extra/test/clang-tidy
         ${LLVM_SOURCE_DIR}/../clang-tools-extra/test/clang-tidy
         /usr/share/clang
@@ -20,7 +25,7 @@ if(NOT CHECK_CLANG_TIDY_PY)
     set(CHECK_CLANG_TIDY_PY "${CMAKE_CURRENT_BINARY_DIR}/check_clang_tidy.py")
     file(
         DOWNLOAD
-            "https://raw.githubusercontent.com/llvm/llvm-project/release/20.x/clang-tools-extra/test/clang-tidy/check_clang_tidy.py"
+            "https://raw.githubusercontent.com/llvm/llvm-project/release/${LLVM_VERSION_MAJOR}.x/clang-tools-extra/test/clang-tidy/check_clang_tidy.py"
         "${CHECK_CLANG_TIDY_PY}"
         STATUS DOWNLOAD_STATUS
     )

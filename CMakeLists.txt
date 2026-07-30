@@ -74,17 +74,11 @@ set_target_properties(
     PROPERTIES CXX_VISIBILITY_PRESET default VISIBILITY_INLINES_HIDDEN OFF
 )
 
-# Find clang-tidy executable for running tests
-find_program(CLANG_TIDY_BIN NAMES clang-tidy HINTS ${LLVM_TOOLS_BINARY_DIR})
-
-if(NOT CLANG_TIDY_BIN)
-    message(
-        WARNING
-        "clang-tidy executable not found; tests will not be runnable."
-    )
-else()
-    message(STATUS "Found clang-tidy: ${CLANG_TIDY_BIN}")
+option(
+    FAULT_LINE_INCLUDE_TESTS
+    "If FaultLine tests should be included"
+    ${PROJECT_IS_TOP_LEVEL}
+)
+if(FAULT_LINE_INCLUDE_TESTS)
+    add_subdirectory(test)
 endif()
-
-# Add test cases using CTest
-add_subdirectory(test)
