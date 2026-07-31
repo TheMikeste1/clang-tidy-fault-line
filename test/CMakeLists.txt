@@ -47,8 +47,8 @@ function(add_clang_tidy_test TEST_NAME CHECKS)
         COMMAND
             ${Python3_EXECUTABLE} ${CHECK_CLANG_TIDY_PY}
             ${CMAKE_CURRENT_SOURCE_DIR}/${TEST_NAME}.cpp ${CHECKS}
-            ${CMAKE_CURRENT_BINARY_DIR}/${TEST_NAME}.cpp.tmp -std=c++17
-            -load=$<TARGET_FILE:FaultLine> -- -std=c++17
+            ${CMAKE_CURRENT_BINARY_DIR}/${TEST_NAME}.cpp.tmp -std=c++11-or-later
+            -load=$<TARGET_FILE:FaultLine> -- -std=c++11-or-later
     )
 endfunction()
 
