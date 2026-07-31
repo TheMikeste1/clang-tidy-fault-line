@@ -1,5 +1,3 @@
-[[clang::annotate("throws_exception")]] bool hasExceptionAttribute();
-
 void noExceptionInline() {}
 
 void exceptionCaught() {

@@ -16,7 +16,15 @@ using namespace clang::ast_matchers;
 
 namespace clang::tidy::fault_line {
 
-void MissingExceptionAttributeCheck::registerMatchers(MatchFinder *Finder) { Finder->addMatcher(functionDecl(hasDescendant(cxxThrowExpr()), unless(isExpansionInSystemHeader())).bind("func"), this); }
+void MissingExceptionAttributeCheck::registerMatchers(MatchFinder *Finder) {
+  // clang-format off
+  Finder->addMatcher(
+    cxxThrowExpr(
+      unless(hasAncestor(compoundStmt(hasParent(cxxTryStmt()))))
+    ).bind("throwExpr"),
+  this);
+  // clang-format on
+}
 
 void MissingExceptionAttributeCheck::check(const MatchFinder::MatchResult &Result) {
   const auto *funcDecl = Result.Nodes.getNodeAs<FunctionDecl>("func");

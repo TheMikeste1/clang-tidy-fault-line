@@ -28,7 +28,21 @@ bool hasThrowsExceptionAnnotation(const FunctionDecl *FunctionDeclaration) {
 } // namespace
 
 void CallerMissingExceptionAttributeCheck::registerMatchers(MatchFinder *Finder) {
-  Finder->addMatcher(callExpr(callee(functionDecl(hasAttr(attr::Annotate)).bind("callee_decl")), unless(hasAncestor(compoundStmt(hasParent(cxxTryStmt())))), forCallable(functionDecl().bind("caller_decl"))).bind("unhandled_call"), this);
+  // clang-format off
+  Finder->addMatcher(
+    callExpr(
+      callee(
+        functionDecl(
+          hasAttr(attr::Annotate)
+        ).bind("callee_decl")
+      ),
+      unless(hasAncestor(compoundStmt(hasParent(cxxTryStmt())))),
+      forCallable(
+        functionDecl().bind("caller_decl")
+        )
+    ).bind("unhandled_call"),
+  this);
+  // clang-format on
 }
 
 void CallerMissingExceptionAttributeCheck::check(const MatchFinder::MatchResult &Result) {
