@@ -27,7 +27,10 @@ void MissingExceptionAttributeCheck::registerMatchers(MatchFinder *Finder) {
           // TODO: Only match if the catch statement catches the throw type
           unless(hasAncestor(compoundStmt(hasParent(cxxTryStmt()))))
         ).bind("throw_expr")
-      )
+      ),
+      // Don't match the IIFE lambda.
+      // We want to match the containing function for IIFEs, but not the lambda itself.
+      unless(hasAncestor(callExpr()))
     ).bind("func"),
   this);
   // clang-format on
@@ -69,7 +72,6 @@ void MissingExceptionAttributeCheck::check(const MatchFinder::MatchResult &Resul
   } else if (const auto *MethodDecl = llvm::dyn_cast<CXXMethodDecl>(FuncDecl)) {
     if (MethodDecl->getParent()->isLambda()) {
       // TODO: Figure out how to fix lambdas
-      // TODO: If this is an IIFE, we don't need to annotate. The caller should though.
       diag(ThrowExpr->getThrowLoc(), "Lambda can throw an exception but is not annotated as such.") << FuncDecl;
       return;
     }

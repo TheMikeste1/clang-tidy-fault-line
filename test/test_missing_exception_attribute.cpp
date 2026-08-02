@@ -1,5 +1,3 @@
-// Test case for fault-line-missing-exception-attribute check
-
 // CHECK-MESSAGES: :[[@LINE+2]]:36: warning: Function 'missingExceptionAttribute' can throw an exception but is not annotated as such. [fault-line-missing-exception-attribute]
 // CHECK-FIXES: {{\[\[}}clang::annotate("throws_exception"){{\]\]}} void missingExceptionAttribute() { throw "Missing!"; }
 void missingExceptionAttribute() { throw "Missing!"; }
@@ -22,7 +20,9 @@ void missingExceptionAttributeInCatch() {
 // CHECK-MESSAGES: :[[@LINE+1]]:22: warning: Lambda can throw an exception but is not annotated as such. [fault-line-missing-exception-attribute]
 auto lambda = []() { throw "Missing!"; };
 
-void dontTriggerOnIffe() {
+// CHECK-FIXES: {{\[\[}}clang::annotate("throws_exception"){{\]\]}} void iife() {
+void iife() {
+  // CHECK-MESSAGES: :[[@LINE+1]]:10: warning: Function 'iife' can throw an exception but is not annotated as such. [fault-line-missing-exception-attribute]
   []() { throw "Missing!"; }();
 }
 
@@ -43,3 +43,10 @@ class TestClass {
   // CHECK-FIXES: {{\[\[}}clang::annotate("throws_exception"){{\]\]}} static void staticMissingExceptionAttribute() { throw "Missing!"; }
   static void staticMissingExceptionAttribute() { throw "Missing!"; }
 };
+
+void dontWarnOnCaughtIife() {
+  try {
+    []() { throw "Unused"; }();
+  } catch (...) {
+  }
+}
