@@ -16,7 +16,7 @@ void callerWithTryCatch() {
 }
 
 void callerLambda() {
-  // CHECK-MESSAGES: :[[@LINE+1]]:3: warning: calling lambda marked with exception attribute without handling exceptions or marking parent function [fault-line-caller-missing-exception-attribute]
+  // CHECK-MESSAGES: :[[@LINE+1]]:9: warning: calling function 'lambda' marked with exception attribute without handling exceptions or marking parent function [fault-line-caller-missing-exception-attribute]
   lambda();
 }
 
@@ -124,5 +124,11 @@ class TestClass {
       // CHECK-MESSAGES: :[[@LINE+1]]:7: warning: calling function 'hasExceptionAttribute' marked with exception attribute without handling exceptions or marking parent function [fault-line-caller-missing-exception-attribute]
       hasExceptionAttribute();
     }
+  }
+
+  [[clang::annotate("throws_exception")]] decltype(lambda) Lambda = lambda;
+  void callerLambda() {
+    // CHECK-MESSAGES: :[[@LINE+1]]:17: warning: calling function 'Lambda' marked with exception attribute without handling exceptions or marking parent function [fault-line-caller-missing-exception-attribute]
+    this->Lambda();
   }
 };

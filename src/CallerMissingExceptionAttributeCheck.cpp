@@ -13,12 +13,12 @@ using namespace clang::ast_matchers;
 
 namespace clang::tidy::fault_line {
 namespace {
-bool hasThrowsExceptionAnnotation(const FunctionDecl *FunctionDeclaration) {
-  if (FunctionDeclaration == nullptr || !FunctionDeclaration->hasAttrs()) {
+bool hasThrowsExceptionAnnotation(const DeclaratorDecl *Declaration) {
+  if (Declaration == nullptr || !Declaration->hasAttrs()) {
     return false;
   }
 
-  return std::any_of(FunctionDeclaration->attrs().begin(), FunctionDeclaration->attrs().end(), [](const Attr *Attr) {
+  return std::any_of(Declaration->attrs().begin(), Declaration->attrs().end(), [](const Attr *Attr) {
     if (const auto *Annotate = dyn_cast<AnnotateAttr>(Attr)) {
       return Annotate->getAnnotation().contains("throws_exception");
     }
@@ -31,15 +31,13 @@ void CallerMissingExceptionAttributeCheck::registerMatchers(MatchFinder *Finder)
   // clang-format off
   Finder->addMatcher(
     callExpr(
-      callee(
-        functionDecl(
-          hasAttr(attr::Annotate)
-        ).bind("callee_decl")
+      anyOf(
+        callee(functionDecl(hasAttr(attr::Annotate)).bind("callee_decl")),
+        hasDescendant(declRefExpr(to(varDecl(hasAttr(attr::Annotate)).bind("callee_decl")))),
+        hasDescendant(memberExpr(hasDeclaration(fieldDecl(hasAttr(attr::Annotate)).bind("callee_decl"))))
       ),
       unless(hasAncestor(compoundStmt(hasParent(cxxTryStmt())))),
-      forCallable(
-        functionDecl().bind("caller_decl")
-        )
+      forCallable(functionDecl().bind("caller_decl"))
     ).bind("unhandled_call"),
   this);
   // clang-format on
@@ -47,7 +45,7 @@ void CallerMissingExceptionAttributeCheck::registerMatchers(MatchFinder *Finder)
 
 void CallerMissingExceptionAttributeCheck::check(const MatchFinder::MatchResult &Result) {
   const auto *MatchedCall = Result.Nodes.getNodeAs<CallExpr>("unhandled_call");
-  const auto *CalleeDecl = Result.Nodes.getNodeAs<FunctionDecl>("callee_decl");
+  const auto *CalleeDecl = Result.Nodes.getNodeAs<DeclaratorDecl>("callee_decl");
   if (MatchedCall == nullptr || CalleeDecl == nullptr) {
     return;
   }
