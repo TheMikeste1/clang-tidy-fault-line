@@ -7,6 +7,29 @@ void exceptionCaught() {
   }
 }
 
+auto lambda = []() {
+  try {
+    throw "Exception";
+  } catch (...) {
+  }
+};
+
+void iife() {
+  try {
+    []() { throw "Exception"; }();
+  } catch (...) {
+  }
+}
+
+void catchingIife() {
+  []() {
+    try {
+      throw "Exception";
+    } catch (...) {
+    }
+  }();
+}
+
 class TestClass {
   TestClass() {
     try {

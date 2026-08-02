@@ -1,5 +1,7 @@
 [[clang::annotate("throws_exception")]] bool hasExceptionAttribute();
 
+[[clang::annotate("throws_exception")]] auto lambda = []() { throw "Exception"; };
+
 void callerMissingAttribute() {
   // CHECK-MESSAGES: :[[@LINE+1]]:3: warning: calling function 'hasExceptionAttribute' marked with exception attribute without handling exceptions or marking parent function [fault-line-caller-missing-exception-attribute]
   hasExceptionAttribute();
@@ -10,6 +12,18 @@ void callerMissingAttribute() {
 void callerWithTryCatch() {
   try {
     hasExceptionAttribute();
+  } catch (...) {
+  }
+}
+
+void callerLambda() {
+  // CHECK-MESSAGES: :[[@LINE+1]]:3: warning: calling lambda marked with exception attribute without handling exceptions or marking parent function [fault-line-caller-missing-exception-attribute]
+  lambda();
+}
+
+void callerLambdaWithTryCatch() {
+  try {
+    lambda();
   } catch (...) {
   }
 }
@@ -31,6 +45,11 @@ void callerWithTryCatchAndExceptionInCatch() {
     // CHECK-MESSAGES: :[[@LINE+1]]:5: warning: calling function 'hasExceptionAttribute' marked with exception attribute without handling exceptions or marking parent function [fault-line-caller-missing-exception-attribute]
     hasExceptionAttribute();
   }
+}
+
+// CHECK-MESSAGES: :[[@LINE+1]]:5: warning: IIFE without handling exceptions or marking parent function [fault-line-caller-missing-exception-attribute]
+void iife() {
+  []() { throw "Exception"; }();
 }
 
 class TestClass {

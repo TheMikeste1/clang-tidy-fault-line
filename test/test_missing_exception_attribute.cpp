@@ -22,6 +22,10 @@ void missingExceptionAttributeInCatch() {
 // CHECK-MESSAGES: :[[@LINE+1]]:22: warning: Lambda can throw an exception but is not annotated as such. [fault-line-missing-exception-attribute]
 auto lambda = []() { throw "Missing!"; };
 
+void dontTriggerOnIffe() {
+  []() { throw "Missing!"; }();
+}
+
 class TestClass {
   // CHECK-MESSAGES: :[[@LINE+2]]:17: warning: Constructor 'TestClass' can throw an exception but is not annotated as such. [fault-line-missing-exception-attribute]
   // CHECK-FIXES: {{\[\[}}clang::annotate("throws_exception"){{\]\]}} TestClass() { throw "Missing!"; }
