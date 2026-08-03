@@ -43,43 +43,50 @@ void MissingExceptionAttributeCheck::registerMatchers(MatchFinder *Finder) {
         ).bind("throw_expr")
       ),
       unless(hasAncestor(lambdaExpr()))
-    ).bind("lhs"),
+    ).bind("decl"),
   this);
-  // clang-format on
 
-  // clang-format off
+  const auto ExistingCallableMatcher = hasDescendant(
+    declRefExpr(
+      to(
+        decl(
+          hasAttr(attr::Annotate)
+        ).bind("assignee")
+      )
+    )
+  );
+  const auto NewLambdaMatcher = hasDescendant(
+    cxxThrowExpr(
+      // TODO: Only match if the catch statement catches the throw type
+      unless(hasAncestor(compoundStmt(hasParent(cxxTryStmt())))),
+      // Don't match IIFE lambdas.
+      // We want to match the containing function for IIFEs, but not the lambda itself.
+      unless(hasAncestor(callExpr()))
+    ).bind("throw_expr")
+  );
+
   Finder->addMatcher(
     varDecl(
       anyOf(
-        // Assign to existing lambda
-        hasDescendant(
-          declRefExpr(
-            to(
-              varDecl(
-                hasAttr(attr::Annotate)
-              ).bind("assignee")
-            )
-          )
-        ),
-
-        // Assignment to new lambda
-        hasDescendant(
-          cxxThrowExpr(
-            // TODO: Only match if the catch statement catches the throw type
-            unless(hasAncestor(compoundStmt(hasParent(cxxTryStmt())))),
-            // Don't match IIFE lambdas.
-            // We want to match the containing function for IIFEs, but not the lambda itself.
-            unless(hasAncestor(callExpr()))
-          ).bind("throw_expr")
-        )
+        ExistingCallableMatcher,
+        NewLambdaMatcher
       )
-    ).bind("lhs"),
+    ).bind("decl"),
+  this);
+
+  Finder->addMatcher(
+    fieldDecl(
+      anyOf(
+        ExistingCallableMatcher,
+        NewLambdaMatcher
+      )
+    ).bind("decl"),
   this);
   // clang-format on
 }
 
 void MissingExceptionAttributeCheck::check(const MatchFinder::MatchResult &Result) {
-  const auto *Lhs = Result.Nodes.getNodeAs<DeclaratorDecl>("lhs");
+  const auto *Lhs = Result.Nodes.getNodeAs<DeclaratorDecl>("decl");
   if (Lhs == nullptr) {
     return;
   }
@@ -121,8 +128,8 @@ void MissingExceptionAttributeCheck::checkFunction(const DeclaratorDecl &Declara
     }
   }
 
-  diag(ThrowExpr.getThrowLoc(), "%0 '%1' can throw an exception but is not annotated as such.")
-      << ObjectTypeString << Declaration.getNameAsString() << FixItHint::CreateInsertion(FuncDecl->getBeginLoc(), "[[clang::annotate(\"throws_exception\")]] ");
+  diag(ThrowExpr.getThrowLoc(), "%0 %1 can throw an exception but is not annotated as such.")
+      << ObjectTypeString << Declaration.getDeclName() << FixItHint::CreateInsertion(FuncDecl->getBeginLoc(), "[[clang::annotate(\"throws_exception\")]] ");
 }
 
 void MissingExceptionAttributeCheck::checkLambdaAssignment(const DeclaratorDecl &Lhs, const VarDecl &Rhs) {

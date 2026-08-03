@@ -48,6 +48,10 @@ class TestClass {
   // CHECK-MESSAGES: :[[@LINE+2]]:51: warning: Method 'staticMissingExceptionAttribute' can throw an exception but is not annotated as such. [fault-line-missing-exception-attribute]
   // CHECK-FIXES: {{\[\[}}clang::annotate("throws_exception"){{\]\]}} static void staticMissingExceptionAttribute() { throw "Missing!"; }
   static void staticMissingExceptionAttribute() { throw "Missing!"; }
+
+  // CHECK-MESSAGES: :[[@LINE+2]]:3: warning: 'classUnmarkedLambda' assigned to a value that can throw an exception but is not annotated as such. [fault-line-missing-exception-attribute]
+  // CHECK-FIXES: {{\[\[}}clang::annotate("throws_exception"){{\]\]}} decltype(markedLambda) classUnmarkedLambda = markedLambda;
+  decltype(markedLambda) classUnmarkedLambda = markedLambda;
 };
 
 void dontWarnOnCaughtIife() {
