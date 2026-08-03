@@ -55,10 +55,11 @@ target_include_directories(
 target_sources(
     FaultLine
     PRIVATE
-        src/FaultLineModule.cpp
         src/CallerMissingExceptionAttributeCheck.cpp
+        src/FaultLineModule.cpp
         src/MissingExceptionAttributeCheck.cpp
         src/UselessExceptionAttributeCheck.cpp
+        src/utilities.cpp
     PUBLIC
         FILE_SET HEADERS
             BASE_DIRS include
@@ -66,6 +67,7 @@ target_sources(
                 include/clang/tidy/fault_line/CallerMissingExceptionAttributeCheck.hpp
                 include/clang/tidy/fault_line/MissingExceptionAttributeCheck.hpp
                 include/clang/tidy/fault_line/UselessExceptionAttributeCheck.hpp
+                include/clang/tidy/fault_line/utilities.hpp
 )
 
 # Disable "lib" prefix on Windows/macOS if desired, keeping standard library output

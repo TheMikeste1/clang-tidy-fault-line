@@ -1,6 +1,7 @@
 #include "clang/tidy/fault_line/UselessExceptionAttributeCheck.hpp"
 #include "clang/ASTMatchers/ASTMatchFinder.h"
 #include "clang/ASTMatchers/ASTMatchers.h"
+#include "clang/tidy/fault_line/utilities.hpp"
 #include <clang/AST/Attr.h>
 #include <clang/AST/Attrs.inc>
 #include <clang/AST/Decl.h>
@@ -17,36 +18,71 @@ using namespace clang::ast_matchers;
 namespace clang::tidy::fault_line {
 
 void UselessExceptionAttributeCheck::registerMatchers(MatchFinder *Finder) {
-  // TODO
-  Finder->addMatcher(functionDecl(hasAttr(attr::Annotate), hasBody(stmt()), unless(hasDescendant(cxxThrowExpr())), unless(hasDescendant(cxxThrowExpr())),
-                                  hasDescendant(callExpr(callee(functionDecl(hasAttr(attr::Annotate)).bind("callee_decl")))), unless(isExpansionInSystemHeader()))
-                         .bind("func"),
-                     this);
+  // clang-format off
+  Finder->addMatcher(
+    functionDecl(
+      hasAttr(attr::Annotate),
+      unless(
+        hasDescendant(
+          cxxThrowExpr(
+            // TODO: Only match if the catch statement catches the throw type
+            unless(hasAncestor(compoundStmt(hasParent(cxxTryStmt()))))
+          )
+        )
+      )
+    ).bind("decl"),
+   this);
+
+  const auto ExistingCallableMatcher = hasDescendant(
+    declRefExpr(
+      to(
+        decl(
+          hasAttr(attr::Annotate)
+        ).bind("assignee")
+      )
+    )
+  );
+  const auto NewLambdaMatcher = hasDescendant(
+    cxxThrowExpr(
+      // TODO: Only match if the catch statement catches the throw type
+      unless(hasAncestor(compoundStmt(hasParent(cxxTryStmt())))),
+      // Don't match IIFE lambdas.
+      // We want to match the containing function for IIFEs, but not the lambda itself.
+      unless(hasAncestor(callExpr()))
+    ).bind("throw_expr")
+  );
+
+  Finder->addMatcher(
+    varDecl(
+      hasAttr(attr::Annotate),
+      unless(anyOf(
+        ExistingCallableMatcher,
+        NewLambdaMatcher
+      ))
+    ).bind("decl"),
+  this);
+
+  Finder->addMatcher(
+    fieldDecl(
+      hasAttr(attr::Annotate),
+      unless(anyOf(
+        ExistingCallableMatcher,
+        NewLambdaMatcher
+      ))
+    ).bind("decl"),
+  this);
+  // clang-format on
 }
 
 void UselessExceptionAttributeCheck::check(const MatchFinder::MatchResult &Result) {
-  // TODO
-  const auto *funcDecl = Result.Nodes.getNodeAs<FunctionDecl>("func");
-  if (funcDecl == nullptr) {
+  const auto *Decl = Result.Nodes.getNodeAs<DeclaratorDecl>("decl");
+  if (Decl == nullptr) {
     return;
   }
 
-  const AnnotateAttr *annotation = nullptr;
-  for (const auto *const attr : funcDecl->attrs()) {
-    const auto *const maybeAnnotation = dyn_cast<AnnotateAttr>(attr);
-    if (maybeAnnotation == nullptr) {
-      continue;
-    }
-
-    const llvm::StringRef annotationStr = maybeAnnotation->getAnnotation();
-    if (annotationStr.contains("throws_exception")) {
-      annotation = maybeAnnotation;
-      break;
-    }
-  }
-
-  if (annotation != nullptr) {
-    diag(annotation->getLocation(), "Function %0 cannot throw an exception but is annotated as such.") << funcDecl;
+  if (hasThrowsExceptionAnnotation(*Decl)) {
+    // TODO: Add removal
+    diag(Decl->getBeginLoc(), "Function '%0' cannot throw an exception but is annotated as such.") << Decl->getName();
   }
 }
 

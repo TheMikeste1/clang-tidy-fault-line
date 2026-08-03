@@ -1,9 +1,8 @@
 #include "clang/tidy/fault_line/MissingExceptionAttributeCheck.hpp"
 #include "clang/ASTMatchers/ASTMatchFinder.h"
 #include "clang/ASTMatchers/ASTMatchers.h"
-#include <algorithm>
+#include "clang/tidy/fault_line/utilities.hpp"
 #include <clang/AST/Attr.h>
-#include <clang/AST/Attrs.inc>
 #include <clang/AST/Decl.h>
 #include <clang/AST/DeclCXX.h>
 #include <clang/AST/Expr.h>
@@ -17,21 +16,6 @@
 using namespace clang::ast_matchers;
 
 namespace clang::tidy::fault_line {
-namespace {
-bool hasThrowsExceptionAnnotation(const Decl &Declaration) {
-  if (!Declaration.hasAttrs()) {
-    return false;
-  }
-
-  return std::any_of(Declaration.attrs().begin(), Declaration.attrs().end(), [](const Attr *Attr) {
-    if (const auto *Annotate = dyn_cast<AnnotateAttr>(Attr)) {
-      return Annotate->getAnnotation().contains("throws_exception");
-    }
-    return false;
-  });
-}
-} // namespace
-
 void MissingExceptionAttributeCheck::registerMatchers(MatchFinder *Finder) {
   // clang-format off
   Finder->addMatcher(
@@ -86,20 +70,20 @@ void MissingExceptionAttributeCheck::registerMatchers(MatchFinder *Finder) {
 }
 
 void MissingExceptionAttributeCheck::check(const MatchFinder::MatchResult &Result) {
-  const auto *Lhs = Result.Nodes.getNodeAs<DeclaratorDecl>("decl");
-  if (Lhs == nullptr) {
+  const auto *Decl = Result.Nodes.getNodeAs<DeclaratorDecl>("decl");
+  if (Decl == nullptr) {
     return;
   }
 
   const auto *ThrowExpr = Result.Nodes.getNodeAs<CXXThrowExpr>("throw_expr");
   if (ThrowExpr != nullptr) {
-    checkFunction(*Lhs, *ThrowExpr);
+    checkFunction(*Decl, *ThrowExpr);
     return;
   }
 
   const auto *Rhs = Result.Nodes.getNodeAs<VarDecl>("assignee");
-  if (Lhs != nullptr && Rhs != nullptr) {
-    checkLambdaAssignment(*Lhs, *Rhs);
+  if (Decl != nullptr && Rhs != nullptr) {
+    checkLambdaAssignment(*Decl, *Rhs);
     return;
   }
 }

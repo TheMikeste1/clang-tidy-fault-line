@@ -1,7 +1,7 @@
 #include "clang/tidy/fault_line/CallerMissingExceptionAttributeCheck.hpp"
 #include "clang/ASTMatchers/ASTMatchFinder.h"
 #include "clang/ASTMatchers/ASTMatchers.h"
-#include <algorithm>
+#include "clang/tidy/fault_line/utilities.hpp"
 #include <clang/AST/Attr.h>
 #include <clang/AST/Decl.h>
 #include <clang/AST/Expr.h>
@@ -12,21 +12,6 @@
 using namespace clang::ast_matchers;
 
 namespace clang::tidy::fault_line {
-namespace {
-bool hasThrowsExceptionAnnotation(const DeclaratorDecl &Declaration) {
-  if (!Declaration.hasAttrs()) {
-    return false;
-  }
-
-  return std::any_of(Declaration.attrs().begin(), Declaration.attrs().end(), [](const Attr *Attr) {
-    if (const auto *Annotate = dyn_cast<AnnotateAttr>(Attr)) {
-      return Annotate->getAnnotation().contains("throws_exception");
-    }
-    return false;
-  });
-}
-} // namespace
-
 void CallerMissingExceptionAttributeCheck::registerMatchers(MatchFinder *Finder) {
   // clang-format off
   Finder->addMatcher(
