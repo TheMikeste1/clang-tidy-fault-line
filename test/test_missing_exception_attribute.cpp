@@ -17,8 +17,14 @@ void missingExceptionAttributeInCatch() {
   }
 }
 
-// CHECK-MESSAGES: :[[@LINE+1]]:22: warning: Lambda can throw an exception but is not annotated as such. [fault-line-missing-exception-attribute]
+// CHECK-MESSAGES: :[[@LINE+2]]:22: warning: Function 'lambda' can throw an exception but is not annotated as such. [fault-line-missing-exception-attribute]
+// CHECK-FIXES: {{\[\[}}clang::annotate("throws_exception"){{\]\]}} auto lambda = []() { throw "Missing!"; };
 auto lambda = []() { throw "Missing!"; };
+
+[[clang::annotate("throws_exception")]] auto markedLambda = []() { throw "Missing!"; };
+// CHECK-MESSAGES: :[[@LINE+2]]:1: warning: 'unmarkedLambda' assigned to a value that can throw an exception but is not annotated as such. [fault-line-missing-exception-attribute]
+// CHECK-FIXES: {{\[\[}}clang::annotate("throws_exception"){{\]\]}} auto unmarkedLambda = markedLambda;
+auto unmarkedLambda = markedLambda;
 
 // CHECK-FIXES: {{\[\[}}clang::annotate("throws_exception"){{\]\]}} void iife() {
 void iife() {

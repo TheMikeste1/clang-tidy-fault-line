@@ -2,6 +2,8 @@
 
 #include "clang-tidy/ClangTidyCheck.h"
 #include <clang-tidy/ClangTidyDiagnosticConsumer.h>
+#include <clang/AST/Decl.h>
+#include <clang/AST/ExprCXX.h>
 #include <clang/ASTMatchers/ASTMatchFinder.h>
 #include <clang/Basic/LLVM.h>
 
@@ -16,6 +18,10 @@ public:
 
   void registerMatchers(ast_matchers::MatchFinder *Finder) override;
   void check(const ast_matchers::MatchFinder::MatchResult &Result) override;
+
+private:
+  void checkFunction(const DeclaratorDecl &Declaration, const CXXThrowExpr &ThrowExpr);
+  void checkLambdaAssignment(const DeclaratorDecl &Lhs, const VarDecl &Rhs);
 };
 
 } // namespace clang::tidy::fault_line

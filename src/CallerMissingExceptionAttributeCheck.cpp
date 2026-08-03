@@ -13,12 +13,12 @@ using namespace clang::ast_matchers;
 
 namespace clang::tidy::fault_line {
 namespace {
-bool hasThrowsExceptionAnnotation(const DeclaratorDecl *Declaration) {
-  if (Declaration == nullptr || !Declaration->hasAttrs()) {
+bool hasThrowsExceptionAnnotation(const DeclaratorDecl &Declaration) {
+  if (!Declaration.hasAttrs()) {
     return false;
   }
 
-  return std::any_of(Declaration->attrs().begin(), Declaration->attrs().end(), [](const Attr *Attr) {
+  return std::any_of(Declaration.attrs().begin(), Declaration.attrs().end(), [](const Attr *Attr) {
     if (const auto *Annotate = dyn_cast<AnnotateAttr>(Attr)) {
       return Annotate->getAnnotation().contains("throws_exception");
     }
@@ -50,12 +50,12 @@ void CallerMissingExceptionAttributeCheck::check(const MatchFinder::MatchResult 
     return;
   }
 
-  if (!hasThrowsExceptionAnnotation(CalleeDecl)) {
+  if (!hasThrowsExceptionAnnotation(*CalleeDecl)) {
     return;
   }
 
   const auto *CallerDecl = Result.Nodes.getNodeAs<FunctionDecl>("caller_decl");
-  if (CallerDecl != nullptr && hasThrowsExceptionAnnotation(CallerDecl)) {
+  if (CallerDecl != nullptr && hasThrowsExceptionAnnotation(*CallerDecl)) {
     return;
   }
 
