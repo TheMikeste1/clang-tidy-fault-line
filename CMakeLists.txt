@@ -58,6 +58,7 @@ target_sources(
         src/CallerMissingExceptionAttributeCheck.cpp
         src/FaultLineModule.cpp
         src/MissingExceptionAttributeCheck.cpp
+        src/MustNotThrowCheck.cpp
         src/UselessExceptionAttributeCheck.cpp
         src/utilities.cpp
     PUBLIC
@@ -66,6 +67,7 @@ target_sources(
             FILES
                 include/clang/tidy/fault_line/CallerMissingExceptionAttributeCheck.hpp
                 include/clang/tidy/fault_line/MissingExceptionAttributeCheck.hpp
+                include/clang/tidy/fault_line/MustNotThrowCheck.hpp
                 include/clang/tidy/fault_line/UselessExceptionAttributeCheck.hpp
                 include/clang/tidy/fault_line/utilities.hpp
 )

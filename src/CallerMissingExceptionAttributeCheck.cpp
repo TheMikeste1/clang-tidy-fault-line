@@ -40,7 +40,7 @@ void CallerMissingExceptionAttributeCheck::check(const MatchFinder::MatchResult 
   }
 
   const auto *CallerDecl = Result.Nodes.getNodeAs<FunctionDecl>("caller_decl");
-  if (CallerDecl != nullptr && hasThrowsExceptionAnnotation(*CallerDecl)) {
+  if (CallerDecl == nullptr || hasThrowsExceptionAnnotation(*CallerDecl)) {
     return;
   }
 
