@@ -7,9 +7,11 @@
 
 namespace clang::tidy::fault_line {
 
-/// \brief Checks for calls to functions marked with exception attributes that
-/// are neither wrapped in a try-catch block nor inside a function marked with
-/// an exception attribute.
+/**
+ * @brief Checks for calls to throwing functions or throw expressions at global or
+ * class member initializer scope outside of any function body where exceptions
+ * cannot be caught.
+ */
 class UnhandleableExceptionCheck : public ClangTidyCheck {
 public:
   UnhandleableExceptionCheck(StringRef Name, ClangTidyContext *Context) : ClangTidyCheck(Name, Context) {}

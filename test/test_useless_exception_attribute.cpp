@@ -10,3 +10,6 @@ class TestClass {
   // CHECK-MESSAGES: :[[@LINE+1]]:3: warning: Function 'Lambda' cannot throw an exception but is annotated as such. [fault-line-useless-exception-attribute]
   [[clang::annotate("throws_exception")]] decltype(unmarkedLambda) Lambda = unmarkedLambda;
 };
+
+[[clang::annotate("throws_exception")]] void throwingFunction() { throw "Exception"; }
+[[clang::annotate("throws_exception")]] void callingThrowingFunction() { throwingFunction(); }

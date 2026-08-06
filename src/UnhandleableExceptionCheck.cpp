@@ -3,15 +3,11 @@
 #include "clang/ASTMatchers/ASTMatchers.h"
 #include "clang/tidy/fault_line/utilities.hpp"
 #include <clang/AST/Attr.h>
-#include <clang/AST/Attrs.inc>
 #include <clang/AST/Decl.h>
 #include <clang/AST/Expr.h>
 #include <clang/AST/ExprCXX.h>
 #include <clang/Basic/AttrKinds.h>
-#include <clang/Basic/Diagnostic.h>
-#include <clang/Basic/DiagnosticIDs.h>
 #include <clang/Basic/LLVM.h>
-#include <clang/Basic/SourceLocation.h>
 #include <llvm/ADT/StringRef.h>
 
 using namespace clang::ast_matchers;

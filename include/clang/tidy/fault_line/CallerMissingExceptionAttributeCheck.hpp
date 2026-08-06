@@ -7,13 +7,14 @@
 
 namespace clang::tidy::fault_line {
 
-/// \brief Checks for calls to functions marked with exception attributes that
-/// are neither wrapped in a try-catch block nor inside a function marked with
-/// an exception attribute.
+/**
+ * @brief Checks for calls to functions or callables marked with exception attributes
+ * that are neither wrapped in a try-catch block nor inside a caller marked with
+ * an exception attribute.
+ */
 class CallerMissingExceptionAttributeCheck : public ClangTidyCheck {
 public:
-  CallerMissingExceptionAttributeCheck(StringRef Name, ClangTidyContext *Context)
-      : ClangTidyCheck(Name, Context) {}
+  CallerMissingExceptionAttributeCheck(StringRef Name, ClangTidyContext *Context) : ClangTidyCheck(Name, Context) {}
 
   void registerMatchers(ast_matchers::MatchFinder *Finder) override;
   void check(const ast_matchers::MatchFinder::MatchResult &Result) override;

@@ -9,9 +9,10 @@
 
 namespace clang::tidy::fault_line {
 
-/// \brief Checks for calls to functions marked with exception attributes that
-/// are neither wrapped in a try-catch block nor inside a function marked with
-/// an exception attribute.
+/**
+ * @brief Checks for functions, methods, constructors, destructors, or lambdas
+ * that can throw an exception but are missing the exception attribute annotation.
+ */
 class MissingExceptionAttributeCheck : public ClangTidyCheck {
 public:
   MissingExceptionAttributeCheck(StringRef Name, ClangTidyContext *Context) : ClangTidyCheck(Name, Context) {}
@@ -21,7 +22,7 @@ public:
 
 private:
   void checkFunction(const DeclaratorDecl &Declaration, const CXXThrowExpr &ThrowExpr);
-  void checkLambdaAssignment(const DeclaratorDecl &Lhs, const VarDecl &Rhs);
+  void checkLambdaAssignment(const DeclaratorDecl &Lhs, const DeclaratorDecl &Rhs);
 };
 
 } // namespace clang::tidy::fault_line

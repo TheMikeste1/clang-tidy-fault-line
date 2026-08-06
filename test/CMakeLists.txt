@@ -32,11 +32,25 @@ if(NOT CHECK_CLANG_TIDY_PY)
     list(GET DOWNLOAD_STATUS 0 STATUS_CODE)
     if(NOT STATUS_CODE EQUAL 0)
         message(
-            FATAL_ERROR
-            "Failed to download check_clang_tidy.py: ${DOWNLOAD_STATUS}"
+            STATUS
+            "Download from release branch failed, trying main branch..."
         )
+        file(
+            DOWNLOAD
+                "https://raw.githubusercontent.com/llvm/llvm-project/main/clang-tools-extra/test/clang-tidy/check_clang_tidy.py"
+            "${CHECK_CLANG_TIDY_PY}"
+            STATUS DOWNLOAD_STATUS
+        )
+        list(GET DOWNLOAD_STATUS 0 STATUS_CODE)
+        if(NOT STATUS_CODE EQUAL 0)
+            message(
+                FATAL_ERROR
+                "Failed to download check_clang_tidy.py: ${DOWNLOAD_STATUS}"
+            )
+        endif()
     endif()
 endif()
+
 
 message(STATUS "Using check_clang_tidy.py: ${CHECK_CLANG_TIDY_PY}")
 

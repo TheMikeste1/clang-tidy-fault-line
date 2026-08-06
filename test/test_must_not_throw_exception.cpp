@@ -18,7 +18,7 @@ class TestClass {
   void noexceptCallLambda() noexcept { lambda(); }
 
   void noexceptIife() noexcept {
-  // CHECK-MESSAGES: :[[@LINE+1]]:12: error: Calling IIFE without handling exceptions in a function that must not throw! [fault-line-must-not-throw]
+    // CHECK-MESSAGES: :[[@LINE+1]]:12: error: Calling IIFE without handling exceptions in a function that must not throw! [fault-line-must-not-throw]
     []() { throw "Exception!"; }();
   }
 };

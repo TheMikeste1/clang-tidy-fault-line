@@ -7,9 +7,10 @@
 
 namespace clang::tidy::fault_line {
 
-/// \brief Checks for calls to functions marked with exception attributes that
-/// are neither wrapped in a try-catch block nor inside a function marked with
-/// an exception attribute.
+/**
+ * @brief Checks for functions, lambdas, variables, or fields annotated with
+ * exception attributes that cannot actually throw an exception.
+ */
 class UselessExceptionAttributeCheck : public ClangTidyCheck {
 public:
   UselessExceptionAttributeCheck(StringRef Name, ClangTidyContext *Context) : ClangTidyCheck(Name, Context) {}

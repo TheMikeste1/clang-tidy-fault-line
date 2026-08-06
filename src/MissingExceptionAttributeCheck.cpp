@@ -81,7 +81,7 @@ void MissingExceptionAttributeCheck::check(const MatchFinder::MatchResult &Resul
     return;
   }
 
-  const auto *Rhs = Result.Nodes.getNodeAs<VarDecl>("assignee");
+  const auto *Rhs = Result.Nodes.getNodeAs<DeclaratorDecl>("assignee");
   if (Decl != nullptr && Rhs != nullptr) {
     checkLambdaAssignment(*Decl, *Rhs);
     return;
@@ -92,7 +92,7 @@ void MissingExceptionAttributeCheck::checkFunction(const DeclaratorDecl &Declara
   // We want to check the function declaration for the attributes.
   const Decl *FuncDecl = Declaration.getCanonicalDecl();
   if (FuncDecl == nullptr) {
-    return;
+    FuncDecl = &Declaration;
   }
 
   if (hasThrowsExceptionAnnotation(*FuncDecl)) {
@@ -105,22 +105,27 @@ void MissingExceptionAttributeCheck::checkFunction(const DeclaratorDecl &Declara
   } else if (llvm::isa<CXXDestructorDecl>(Declaration)) {
     ObjectTypeString = "Destructor";
   } else if (const auto *MethodDecl = llvm::dyn_cast<CXXMethodDecl>(FuncDecl)) {
-    if (MethodDecl->getParent()->isLambda()) {
+    if (MethodDecl->getParent() != nullptr && MethodDecl->getParent()->isLambda()) {
       ObjectTypeString = "Lambda";
     } else {
       ObjectTypeString = "Method";
     }
   }
 
-  diag(ThrowExpr.getThrowLoc(), "%0 %1 can throw an exception but is not annotated as such.")
-      << ObjectTypeString << Declaration.getDeclName() << FixItHint::CreateInsertion(FuncDecl->getBeginLoc(), "[[clang::annotate(\"throws_exception\")]] ");
+  auto Diagnostic = diag(ThrowExpr.getThrowLoc(), "%0 %1 can throw an exception but is not annotated as such.") << ObjectTypeString << Declaration.getDeclName();
+  if (FuncDecl->getBeginLoc().isValid()) {
+    Diagnostic << FixItHint::CreateInsertion(FuncDecl->getBeginLoc(), "[[clang::annotate(\"throws_exception\")]] ");
+  }
 }
 
-void MissingExceptionAttributeCheck::checkLambdaAssignment(const DeclaratorDecl &Lhs, const VarDecl &Rhs) {
+void MissingExceptionAttributeCheck::checkLambdaAssignment(const DeclaratorDecl &Lhs, const DeclaratorDecl &Rhs) {
   if (hasThrowsExceptionAnnotation(Lhs) || !hasThrowsExceptionAnnotation(Rhs)) {
     return;
   }
 
-  diag(Lhs.getBeginLoc(), "'%0' assigned to a value that can throw an exception but is not annotated as such.") << Lhs.getName() << FixItHint::CreateInsertion(Lhs.getBeginLoc(), "[[clang::annotate(\"throws_exception\")]] ");
+  auto Diagnostic = diag(Lhs.getBeginLoc(), "'%0' assigned to a value that can throw an exception but is not annotated as such.") << Lhs.getName();
+  if (Lhs.getBeginLoc().isValid()) {
+    Diagnostic << FixItHint::CreateInsertion(Lhs.getBeginLoc(), "[[clang::annotate(\"throws_exception\")]] ");
+  }
 }
 } // namespace clang::tidy::fault_line

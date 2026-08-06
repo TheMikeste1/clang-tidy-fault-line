@@ -3,15 +3,14 @@
 #include "clang/ASTMatchers/ASTMatchers.h"
 #include "clang/tidy/fault_line/utilities.hpp"
 #include <clang/AST/Attr.h>
-#include <clang/AST/Attrs.inc>
 #include <clang/AST/Decl.h>
 #include <clang/AST/Expr.h>
 #include <clang/AST/ExprCXX.h>
 #include <clang/Basic/AttrKinds.h>
 #include <clang/Basic/Diagnostic.h>
 #include <clang/Basic/LLVM.h>
-#include <clang/Basic/SourceLocation.h>
 #include <llvm/ADT/StringRef.h>
+#include <llvm/Support/Casting.h>
 
 using namespace clang::ast_matchers;
 
@@ -19,17 +18,25 @@ namespace clang::tidy::fault_line {
 
 void UselessExceptionAttributeCheck::registerMatchers(MatchFinder *Finder) {
   // clang-format off
+  const auto CanThrowStmt = stmt(
+    anyOf(
+      // TODO: Only match if the catch statement catches the throw type
+      cxxThrowExpr(unless(hasAncestor(compoundStmt(hasParent(cxxTryStmt()))))),
+      callExpr(
+        anyOf(
+          callee(functionDecl(hasAttr(attr::Annotate))),
+          hasDescendant(declRefExpr(to(decl(hasAttr(attr::Annotate))))),
+          hasDescendant(memberExpr(hasDeclaration(fieldDecl(hasAttr(attr::Annotate)))))
+        ),
+        unless(hasAncestor(compoundStmt(hasParent(cxxTryStmt()))))
+      )
+    )
+  );
+
   Finder->addMatcher(
     functionDecl(
       hasAttr(attr::Annotate),
-      unless(
-        hasDescendant(
-          cxxThrowExpr(
-            // TODO: Only match if the catch statement catches the throw type
-            unless(hasAncestor(compoundStmt(hasParent(cxxTryStmt()))))
-          )
-        )
-      )
+      unless(hasDescendant(CanThrowStmt))
     ).bind("decl"),
    this);
 
@@ -44,7 +51,6 @@ void UselessExceptionAttributeCheck::registerMatchers(MatchFinder *Finder) {
   );
   const auto NewLambdaMatcher = hasDescendant(
     cxxThrowExpr(
-      // TODO: Only match if the catch statement catches the throw type
       unless(hasAncestor(compoundStmt(hasParent(cxxTryStmt())))),
       // Don't match IIFE lambdas.
       // We want to match the containing function for IIFEs, but not the lambda itself.
@@ -80,10 +86,23 @@ void UselessExceptionAttributeCheck::check(const MatchFinder::MatchResult &Resul
     return;
   }
 
-  if (hasThrowsExceptionAnnotation(*Decl)) {
-    // TODO: Add removal
-    diag(Decl->getBeginLoc(), "Function '%0' cannot throw an exception but is annotated as such.") << Decl->getName();
+  if (!hasThrowsExceptionAnnotation(*Decl)) {
+    return;
+  }
+
+  auto Diagnostic = diag(Decl->getBeginLoc(), "Function '%0' cannot throw an exception but is annotated as such.") << Decl->getName();
+  for (const Attr *Attr : Decl->attrs()) {
+    const auto *Annotate = dyn_cast<AnnotateAttr>(Attr);
+    if (Annotate == nullptr) {
+      continue;
+    }
+
+    if (Annotate->getAnnotation() == "throws_exception" || Annotate->getAnnotation().contains("throws_exception")) {
+      if (Annotate->getLocation().isValid()) {
+        Diagnostic << FixItHint::CreateRemoval(Annotate->getRange());
+      }
+      break;
+    }
   }
 }
-
 } // namespace clang::tidy::fault_line

@@ -7,9 +7,10 @@
 
 namespace clang::tidy::fault_line {
 
-/// \brief Checks for calls to functions marked with exception attributes that
-/// are neither wrapped in a try-catch block nor inside a function marked with
-/// an exception attribute.
+/**
+ * @brief Checks for calls to throwing functions or throw expressions inside
+ * functions or destructors marked as noexcept without handling exceptions.
+ */
 class MustNotThrowCheck : public ClangTidyCheck {
 public:
   MustNotThrowCheck(StringRef Name, ClangTidyContext *Context) : ClangTidyCheck(Name, Context) {}
