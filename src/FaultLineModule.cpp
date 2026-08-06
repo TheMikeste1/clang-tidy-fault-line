@@ -2,6 +2,7 @@
 #include "clang/tidy/fault_line/CallerMissingExceptionAttributeCheck.hpp"
 #include "clang/tidy/fault_line/MissingExceptionAttributeCheck.hpp"
 #include "clang/tidy/fault_line/MustNotThrowCheck.hpp"
+#include "clang/tidy/fault_line/UnhandleableExceptionCheck.hpp"
 #include "clang/tidy/fault_line/UselessExceptionAttributeCheck.hpp"
 
 namespace clang::tidy::fault_line {
@@ -10,6 +11,7 @@ public:
   void addCheckFactories(ClangTidyCheckFactories &CheckFactories) override {
     CheckFactories.registerCheck<CallerMissingExceptionAttributeCheck>("fault-line-caller-missing-exception-attribute");
     CheckFactories.registerCheck<MissingExceptionAttributeCheck>("fault-line-missing-exception-attribute");
+    CheckFactories.registerCheck<UnhandleableExceptionCheck>("fault-line-unhandleable-exception");
     CheckFactories.registerCheck<UselessExceptionAttributeCheck>("fault-line-useless-exception-attribute");
     CheckFactories.registerCheck<MustNotThrowCheck>("fault-line-must-not-throw");
   }
